@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spam Mail Sender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #num, #err {
+            margin: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #num {
+            color: #2c3e50;
+        }
+        #err {
+            color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div id="num">Loading...</div>
+    <div id="err">Loading...</div>
+
+    <script>
+        function fetchData() {
+            try{
+            fetch('num.txt')
+                .then(response => response.text())
+                .then(data => {
+                    let displayText = data.trim();
+                    if(data.trim() == "Loading..."){
+                        document.getElementById('num').textContent = "Loading...";
+                        document.getElementById('err').textContent = "Loading...";
+                    } else{
+                    document.getElementById('num').textContent = 'Number for mails sent: ' + displayText;
+                    fetch('errs.txt')
+                    .then(response => response.text())
+                    .then(data => {
+                            document.getElementById('err').textContent = 'Mails failed due to an error: ' + data;
+                    });
+                    }
+                });
+            } catch(e){
+
+            }
+            }            
+        // Fetch data every second
+        setInterval(fetchData, 0);
+    </script>
+</body>
+</html>
