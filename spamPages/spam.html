@@ -9,7 +9,7 @@
             padding: 0;
             background-color: #f0f0f0;
         }
-        #num, #err {
+        #num, #err, #errmessages {
             margin: 20px;
             padding: 10px;
             border-radius: 5px;
@@ -27,32 +27,62 @@
 <body>
     <div id="num">Loading...</div>
     <div id="err">Loading...</div>
+    <button onclick="show()">Show/hide errors</button>
+    <div id="errors" style="display: none">Loading...</div>
 
     <script>
-        function fetchData() {
-            try{
-            fetch('num.txt')
-                .then(response => response.text())
-                .then(data => {
-                    let displayText = data.trim();
-                    if(data.trim() == "Loading..."){
-                        document.getElementById('num').textContent = "Loading...";
-                        document.getElementById('err').textContent = "Loading...";
-                    } else{
-                    document.getElementById('num').textContent = 'Number for mails sent: ' + displayText;
-                    fetch('errs.txt')
+// Define the variable 'times'
+var times = parseInt(atob(location.href.split("/")[5])); // Set it to whatever value you want
+
+function fetchData() {
+    fetch('num.txt')
+        .then(response => response.text())
+        .then(data => {
+            let displayText = data.trim();
+            if (displayText !== "Loading...") {
+                document.getElementById('num').textContent = 'Number for mails sent: ' + displayText;
+                // Check if the fetched number is equal to 'times', if so, stop the infinite loop
+                if (parseInt(displayText) >= times) {
+                    return;
+                }
+                fetch('errs.txt')
                     .then(response => response.text())
                     .then(data => {
-                            document.getElementById('err').textContent = 'Mails failed due to an error: ' + data;
+                        document.getElementById('err').textContent = 'Mails failed due to an error: ' + data;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching errs.txt:', error);
                     });
-                    }
-                });
-            } catch(e){
 
+                fetch('errmessages.txt')
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('errors').textContent = data;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching errmessages.txt:', error);
+                    });
             }
-            }            
-        // Fetch data every second
-        setInterval(fetchData, 0);
+            // Always initiate the next fetch request
+            fetchData();
+        })
+        .catch(error => {
+            console.error('Error fetching num.txt:', error);
+            // Initiate the next fetch request even if an error occurs
+            fetchData();
+        });
+}
+// Initial call to fetchData()
+fetchData();
+
+function show() {
+    const errorsElement = document.querySelector("#errors");
+    if (errorsElement.style.display === "none") {
+        errorsElement.style.display = "block";
+    } else {
+        errorsElement.style.display = "none";
+    }
+}
     </script>
 </body>
 </html>
