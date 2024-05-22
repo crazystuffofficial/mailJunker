@@ -342,10 +342,13 @@ function spam(theemail, encodedEmail, path){
         });
     }).catch(function(e) {
         errs++;
-        fs.promises.readFile(path + '/errmessages.txt', 'utf-8')
-        .then((data) => {
-        fs.writeFileSync(path + '/errmessages.txt', data + e + "\n");
-        });
+        fs.appendFile(path + '/errmessages.txt', "\n", (err) => {
+  if (err) {
+    console.error('Error appending data:', err);
+  } else {
+    
+  }
+});
     }).then(function(response){
         num++;
         fs.writeFileSync(path + '/num.txt', num.toString());
